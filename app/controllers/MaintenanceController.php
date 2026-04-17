@@ -20,10 +20,42 @@ class MaintenanceController {
         exit;
     }
 
-    public function getAll() {
+    public function update() {
         $db = (new Database())->connect();
         $maintenance = new Maintenance($db);
-        return $maintenance->getAll();
+
+        $maintenance->update($_POST['id'], [
+            ':date' => $_POST['date'],
+            ':description' => $_POST['description'],
+            ':cost' => $_POST['cost']
+        ]);
+
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=maintenances');
+        exit;
+    }
+
+    public function delete() {
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            $db = (new Database())->connect();
+            $maintenance = new Maintenance($db);
+            $maintenance->delete($id);
+        }
+
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?view=maintenances');
+        exit;
+    }
+
+    public function getAll($filterBy = null, $filterValue = null) {
+        $db = (new Database())->connect();
+        $maintenance = new Maintenance($db);
+        return $maintenance->getAll($filterBy, $filterValue);
+    }
+
+    public function getById($id) {
+        $db = (new Database())->connect();
+        $maintenance = new Maintenance($db);
+        return $maintenance->getById($id);
     }
 
     public function getCars() {
