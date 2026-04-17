@@ -16,13 +16,31 @@ class Car {
     }
 
     public function getAll($filterBy = null, $filterValue = null) {
-        $allowed = ['license_plate', 'owner_cc'];
+        $allowed = ['all', 'license_plate', 'brand', 'model', 'line', 'owner', 'owner_cc'];
         $sql = "SELECT c.license_plate, c.brand, c.model, c.`line`, o.name AS owner, c.owner_cc
                 FROM cars c
                 JOIN owners o ON c.owner_cc = o.cc";
 
         if ($filterBy && in_array($filterBy, $allowed, true) && $filterValue !== null && $filterValue !== '') {
-            $sql .= " WHERE c.{$filterBy} LIKE :value";
+            if ($filterBy === 'all') {
+                $sql .= " WHERE c.license_plate LIKE :value
+                          OR c.brand LIKE :value
+                          OR c.model LIKE :value
+                          OR c.`line` LIKE :value
+                          OR c.owner_cc LIKE :value
+                          OR o.name LIKE :value";
+            } else {
+                $map = [
+                    'license_plate' => 'c.license_plate',
+                    'brand' => 'c.brand',
+                    'model' => 'c.model',
+                    'line' => 'c.`line`',
+                    'owner' => 'o.name',
+                    'owner_cc' => 'c.owner_cc'
+                ];
+                $column = $map[$filterBy];
+                $sql .= " WHERE {$column} LIKE :value";
+            }
             $sql .= " ORDER BY c.license_plate";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([':value' => "%{$filterValue}%"]);

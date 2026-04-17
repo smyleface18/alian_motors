@@ -16,14 +16,34 @@ class Maintenance {
     }
 
     public function getAll($filterBy = null, $filterValue = null) {
-        $allowed = ['car_plate', 'date'];
+        $allowed = ['all', 'car_plate', 'date', 'owner', 'brand', 'model', 'line', 'description'];
         $sql = "SELECT m.id, m.`date`, m.description, m.cost, c.license_plate, c.brand, c.model, o.name AS owner
                 FROM maintenances m
                 JOIN cars c ON m.car_plate = c.license_plate
                 JOIN owners o ON c.owner_cc = o.cc";
 
         if ($filterBy && in_array($filterBy, $allowed, true) && $filterValue !== null && $filterValue !== '') {
-            $sql .= " WHERE m.{$filterBy} LIKE :value";
+            if ($filterBy === 'all') {
+                $sql .= " WHERE m.car_plate LIKE :value
+                          OR m.`date` LIKE :value
+                          OR o.name LIKE :value
+                          OR c.brand LIKE :value
+                          OR c.model LIKE :value
+                          OR c.`line` LIKE :value
+                          OR m.description LIKE :value";
+            } else {
+                $map = [
+                    'car_plate' => 'm.car_plate',
+                    'date' => 'm.`date`',
+                    'owner' => 'o.name',
+                    'brand' => 'c.brand',
+                    'model' => 'c.model',
+                    'line' => 'c.`line`',
+                    'description' => 'm.description'
+                ];
+                $column = $map[$filterBy];
+                $sql .= " WHERE {$column} LIKE :value";
+            }
             $sql .= " ORDER BY m.`date` DESC";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([':value' => "%{$filterValue}%"]);
