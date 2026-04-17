@@ -1,5 +1,6 @@
 <?php
 $editing = !empty($maintenance);
+$formData = $maintenance ?? $old ?? [];
 ?>
 
 <div class="card section-card shadow-sm">
@@ -14,13 +15,24 @@ $editing = !empty($maintenance);
             </div>
         </div>
 
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <strong>Please fix the following:</strong>
+                <ul class="mb-0">
+                    <?php foreach ($errors as $error): ?>
+                        <li><?= htmlspecialchars($error) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
         <?php if (empty($cars)): ?>
             <div class="alert alert-warning">You need at least one car before recording maintenance.</div>
             <a href="?view=cars&action=create" class="btn btn-primary"><i class="bi bi-car-front-fill"></i> Add Car</a>
         <?php else: ?>
             <form method="post" action="?view=maintenances&action=<?= $editing ? 'update' : 'save' ?>" class="row g-4">
                 <?php if ($editing): ?>
-                    <input type="hidden" name="id" value="<?= htmlspecialchars($maintenance['id']) ?>">
+                    <input type="hidden" name="id" value="<?= htmlspecialchars($formData['id'] ?? '') ?>">
                 <?php endif; ?>
 
                 <div class="col-md-4">
@@ -28,29 +40,29 @@ $editing = !empty($maintenance);
                     <select name="car_plate" class="form-select" <?= $editing ? 'disabled' : 'required' ?>>
                         <option value="">Select a car</option>
                         <?php foreach ($cars as $car): ?>
-                            <option value="<?= htmlspecialchars($car['license_plate']) ?>" <?= $editing && $car['license_plate'] === ($maintenance['car_plate'] ?? '') ? 'selected' : '' ?> >
+                            <option value="<?= htmlspecialchars($car['license_plate']) ?>" <?= $car['license_plate'] === ($formData['car_plate'] ?? '') ? 'selected' : '' ?> >
                                 <?= htmlspecialchars($car['license_plate'] . ' - ' . $car['brand'] . ' ' . $car['model'] . ' (' . $car['owner'] . ')') ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                     <?php if ($editing): ?>
-                        <input type="hidden" name="car_plate" value="<?= htmlspecialchars($maintenance['car_plate']) ?>">
+                        <input type="hidden" name="car_plate" value="<?= htmlspecialchars($formData['car_plate'] ?? '') ?>">
                     <?php endif; ?>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Date</label>
-                    <input type="date" name="date" class="form-control" required value="<?= htmlspecialchars($maintenance['date'] ?? '') ?>">
+                    <input type="date" name="date" class="form-control" required value="<?= htmlspecialchars($formData['date'] ?? '') ?>">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Cost</label>
                     <div class="input-group">
                         <span class="input-group-text">$</span>
-                        <input type="number" step="0.01" name="cost" class="form-control" required value="<?= htmlspecialchars($maintenance['cost'] ?? '') ?>">
+                        <input type="number" step="0.01" name="cost" class="form-control" required value="<?= htmlspecialchars($formData['cost'] ?? '') ?>">
                     </div>
                 </div>
                 <div class="col-12">
                     <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" rows="4" required><?= htmlspecialchars($maintenance['description'] ?? '') ?></textarea>
+                    <textarea name="description" class="form-control" rows="4" required><?= htmlspecialchars($formData['description'] ?? '') ?></textarea>
                 </div>
                 <div class="col-12 d-flex gap-2 flex-column flex-sm-row">
                     <button type="submit" class="btn btn-success btn-lg"><i class="bi bi-save-fill me-1"></i> Save Maintenance</button>

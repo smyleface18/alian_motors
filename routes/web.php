@@ -22,8 +22,32 @@ $controllers = [
 $controller = $controllers[$view];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['save', 'update'], true)) {
-    $controller->{$action}();
-    exit;
+    $result = $controller->{$action}();
+    if (is_array($result) && !empty($result['errors'])) {
+        $errors = $result['errors'];
+        $old = $result['old'] ?? [];
+
+        require_once __DIR__ . '/../app/views/Layout/header.php';
+
+        if ($view === 'owners') {
+            if ($action === 'update') {
+                $owner = $old;
+            }
+            require __DIR__ . '/../app/views/owners/form.php';
+        } elseif ($view === 'cars') {
+            $owners = $controller->getOwners();
+            if ($action === 'update') {
+                $car = $old;
+            }
+            require __DIR__ . '/../app/views/cars/form.php';
+        } elseif ($view === 'maintenances') {
+            $cars = $controller->getCars();
+            require __DIR__ . '/../app/views/maintenances/form.php';
+        }
+
+        require_once __DIR__ . '/../app/views/Layout/footer.php';
+        exit;
+    }
 }
 
 if ($action === 'delete') {
